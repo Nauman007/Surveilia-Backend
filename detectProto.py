@@ -8,6 +8,8 @@ import torch.optim
 from ops.models import TSN
 from ops.transforms import * 
 from torch.nn import functional as F
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 parser = argparse.ArgumentParser(description="TSM Testing on real time!!")
 parser.add_argument('-f',type=str,help='Provide a video!!')
@@ -46,7 +48,9 @@ net = TSN(num_class, 1, modality,
               non_local='_nl' in this_weights,
               )
 
+#checkpoint = torch.load(this_weights,map_location=torch.device('cpu'))
 checkpoint = torch.load(this_weights)
+
 checkpoint = checkpoint['state_dict']
 
 # base_dict = {('base_model.' + k).replace('base_model.fc', 'new_fc'): v for k, v in list(checkpoint.items())}
@@ -60,7 +64,7 @@ for k, v in replace_dict.items():
 
 net.load_state_dict(base_dict)
 net.cuda().eval()
-
+#net.eval()
 transform=torchvision.transforms.Compose([
                            Stack(roll=(this_arch in ['BNInception', 'InceptionV3'])),
                            ToTorchFormatTensor(div=(this_arch not in ['BNInception', 'InceptionV3'])),
@@ -101,12 +105,14 @@ def main():
         count+=1
         i_frame += 1
         _, img = cap.read()  # (480, 640, 3) 0 ~ 255
-        if i_frame % 2 == 0:  # skip every other frame to obtain a suitable frame rate
+        if i_frame % 10 == 0:  # skip every other frame to obtain a suitable frame rate
             
             
             img_tran = transform([Image.fromarray(img).convert('RGB')])
             input = img_tran.view(-1, 3, img_tran.size(1),
             img_tran.size(2)).unsqueeze(0).cuda()
+            #input = img_tran.view(-1, 3, img_tran.size(1),
+            #img_tran.size(2)).unsqueeze(0)
             with torch.no_grad():
                 logits = net(input)
                 h_x = torch.mean(F.softmax(logits, 1), dim=0).data
