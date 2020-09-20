@@ -9,7 +9,7 @@ TrainAccuracy = np.load('Myplots/TrainAccuracy.npy')
 ValidationAccuracy =np.load('Myplots/ValidationAccuracy.npy')                 
 
 plt.tight_layout()
-
+#plot Train/val loss 
 plot1 = plt.figure(1)
 plt.plot(Train_loss_values,label = 'Training Loss')
 plt.plot(val_lost_values, label = 'Validation Loss')
@@ -17,6 +17,7 @@ plt.ylabel('loss')
 plt.xlabel('epochs')
 plt.legend(loc = 'upper right')
 
+#plot Train/Val accuracy
 plot2 = plt.figure(2)
 plt.plot(TrainAccuracy,label = 'Training Accuracy')
 plt.plot(ValidationAccuracy, label = 'Validation Accuracy')
