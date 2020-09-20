@@ -56,7 +56,7 @@ def plot_confusion_matrix(cm,
     plt.xlabel('Predicted label\naccuracy={:0.4f}; misclass={:0.4f}'.format(accuracy, misclass))
     plt.show()
 #%matplotlib inline 
-x = plot_confusion_matrix(cm           = data, 
+plot_confusion_matrix(cm           = data, 
                       normalize    = False,
                       target_names = ['Normal','Abnormal'],
                       title        = "Confusion Matrix")
