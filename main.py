@@ -171,6 +171,7 @@ def main():
 
     # define loss function (criterion) and optimizer
     if args.loss_type == 'nll':
+        print("I am using Cross Entropy as loss function")
         criterion = torch.nn.CrossEntropyLoss().cuda()
     else:
         raise ValueError("Unknown loss type")
