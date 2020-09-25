@@ -24,7 +24,7 @@ def parse_directory(path):
         k = f.split('/')[-1]
         rgb_counts[k] = cnt
         dir_dict[k] = f
-        print(dir_dict[k])
+        #print(dir_dict[k])
         if i % 200 == 0:
             print('{} videos parsed'.format(i))
 
@@ -54,23 +54,23 @@ def build_split_list(split_tuple, frame_info, split_idx, shuffle=False):
 
 # Dataset specific split file parse
 def parse_ucf_splits():
-    data_path='/home/nauman/FYP-1-work/UCFCrimeAnaomly/UCFCrime'
+    data_path='/home/nauman/FYP-1-work/Surveilia/Surveilia/UCFCrime'
     class_ind = [x.strip().split() for x in open(data_path+'/labels/ClassIDs.txt')]
     #print(class_ind)
     class_mapping = {x[1]:int(x[0])-1 for x in class_ind}
-    print(class_mapping)
+    #print(class_mapping)
     def line2rec(line):
         items = line.strip().split('/')
         #print(items[0])
         label = class_mapping[items[0]]
-        print(label)
+        #print(label)
         vid = items[1].split('.')[0]
-        print(vid)
+        #print(vid)
         return vid, label
 
     splits = []
-    #train_list = [line2rec(x) for x in open(data_path + 'labels/trainlist01.txt')]
-   # test_list = [line2rec(x) for x in open(data_path + 'labels/testlist01.txt')]
+    #train_list = [line2rec(x) for x in open(data_path + '/labels/train_001.txt')]
+    #test_list = [line2rec(x) for x in open(data_path + '/labels/test_001.txt')]
     #splits.append((train_list, test_list))
     
     for i in range(1, 4):
