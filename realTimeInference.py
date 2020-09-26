@@ -14,6 +14,8 @@ os.environ["CUDA_VISIBLE_DEVICES"]="0"
 parser = argparse.ArgumentParser(description="TSM Testing on real time!!")
 parser.add_argument('-f',type=str,help='Provide a video!!')
 
+print()
+print('======>>>>> Loading model ... Please wait ...')
 #just adding some comments to check git 
 def parse_shift_option_from_log_name(log_name):
     if 'shift' in log_name:
