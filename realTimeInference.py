@@ -9,6 +9,14 @@ from ops.models import TSN
 from ops.transforms import * 
 from torch.nn import functional as F
 import os
+
+"""
+	To run this code on CPU set 
+	1- os.environ to ""
+	2- uncomment line 60 and comment line 61  
+	3- uncomment line 76 and comment line 75
+	4- uncomment line 124,125 and comment line 122,123
+"""
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 parser = argparse.ArgumentParser(description="TSM Testing on real time!!")
