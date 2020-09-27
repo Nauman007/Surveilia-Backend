@@ -16,6 +16,9 @@ import os
 	2- uncomment line 60 and comment line 61  
 	3- uncomment line 76 and comment line 75
 	4- uncomment line 124,125 and comment line 122,123
+	--> Inference on CPU is slow but if u want it fast there is 
+	    a little hack u can apply increase the value from 4 to 10 
+	    in line 121 i_frame % 10 == 0 it will work In Shaa Allah
 """
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
@@ -115,7 +118,7 @@ def main():
         count+=1
         i_frame += 1
         _, img = cap.read()  # (480, 640, 3) 0 ~ 255
-        if i_frame % 10 == 0:  # skip every other frame to obtain a suitable frame rate
+        if i_frame % 4 == 0:  # skip every other frame to obtain a suitable frame rate
             
             
             img_tran = transform([Image.fromarray(img).convert('RGB')])
@@ -141,7 +144,7 @@ def main():
         if categories[idx[0]] == 'Abnormal Activity':
             R = 255
             G = 0  
-            print('\a')  
+            #print('\007')  
         else:
             R = 0
             G = 255
