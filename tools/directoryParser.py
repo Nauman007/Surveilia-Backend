@@ -7,7 +7,7 @@ UCF-CRIME datastet
 import glob
 import os
 #print(glob.glob("E:\UCF-crime dataset\Normal_Videos_event\*.avi"))
-a = [name for name in os.listdir(".") if name.endswith(".mp4")]
+a = [name for name in os.listdir("/home/nauman/FYP-1-work/Surveilia/Surveilia/UCFCrime/CC/Abnormal") if name.endswith(".mp4")]
 a.sort()
 print(a)
 with open('1-listfile.txt', 'w') as filehandle:

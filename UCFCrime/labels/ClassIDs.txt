@@ -1,2 +1,2 @@
-1 Normal_Videos_event
+1 Normal
 2 Abnormal

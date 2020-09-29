@@ -8,8 +8,8 @@ import argparse
 
 out_path = ''
 
-
-def dump_frames(vid_path):
+count = 0
+def dump_frames(vid_path,num_of_videos):
 
     video = cv2.VideoCapture(vid_path)
     vid_name = vid_path.split('/')[-1].split('.')[0]
@@ -28,7 +28,9 @@ def dump_frames(vid_path):
         cv2.imwrite('{}/img_{:05d}.jpg'.format(out_full_path, i+1), resizedFrame)
         access_path = '{}/img_{:05d}.jpg'.format(vid_name, i+1)
         file_list.append(access_path)
-    print ('{} done'.format(vid_name))
+    global count 
+    count = count + 1
+    print ('--> {}/{} -> {} done'.format(count,num_of_videos,vid_name))
     sys.stdout.flush()
     return file_list
 
@@ -46,6 +48,7 @@ if __name__ == '__main__':
     out_path = args.out_dir
     src_path = args.src_dir
     ext = args.ext
+    #count = 0
 
     if not os.path.isdir(out_path):
         print ('creating folder: ' + out_path)
@@ -60,5 +63,5 @@ if __name__ == '__main__':
         pass
 
     for vid in vid_list:
-        dump_frames(vid)
+        dump_frames(vid,len(vid_list))
 
