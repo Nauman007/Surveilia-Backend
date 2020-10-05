@@ -327,6 +327,6 @@ print('upper bound: {}'.format(upper))
 print('-----Evaluation is finished------')
 print('Class Accuracy {:.02f}%'.format(np.mean(cls_acc) * 100))
 print('Overall Prec@1 {:.02f}% Prec@5 {:.02f}%'.format(top1.avg, top5.avg))
-
+print('\n',cf)
 
 
