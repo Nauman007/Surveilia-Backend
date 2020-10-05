@@ -5,7 +5,8 @@
 
 import os
 
-ROOT_DATASET = ''  # '/data/jilin/'
+ROOT_DATASET = '/content/Surveilia/'  # '/data/jilin/'
+#ROOT_DATASET = ''  # '/data/jilin/'
 
 
 def return_ucfcrime(modality):
@@ -122,3 +123,4 @@ def return_dataset(dataset, modality):
     n_class = len(categories)
     print('{}: {} classes'.format(dataset, n_class))
     return n_class, file_imglist_train, file_imglist_val, root_data, prefix
+

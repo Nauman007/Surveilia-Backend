@@ -246,7 +246,7 @@ def train(train_loader, model, criterion, optimizer, epoch, log, tf_writer):
         loss = criterion(output, target_var)
 
         # measure accuracy and record loss
-        prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
+        prec1, prec5 = accuracy(output.data, target, topk=(1, 2))
         losses.update(loss.item(), input.size(0))
         top1.update(prec1.item(), input.size(0))
         top5.update(prec5.item(), input.size(0))
@@ -302,7 +302,7 @@ def validate(val_loader, model, criterion, epoch, log=None, tf_writer=None):
             loss = criterion(output, target)
 
             # measure accuracy and record loss
-            prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
+            prec1, prec5 = accuracy(output.data, target, topk=(1, 2))
 
             losses.update(loss.item(), input.size(0))
             top1.update(prec1.item(), input.size(0))
@@ -377,3 +377,4 @@ def check_rootfolders():
 
 if __name__ == '__main__':
     main()
+
