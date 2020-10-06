@@ -1,6 +1,9 @@
 checkpoint/
 *.tar
 *.swp
+*.mp4
+*.npy
+Myplots/
 UCFCrime/jpg/
 UCFCrime/CC/
 UCFCrime/compressedPICS/

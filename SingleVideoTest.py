@@ -30,7 +30,7 @@ def parse_shift_option_from_log_name(log_name):
         
         
 # options
-parser = argparse.ArgumentParser(description="test TRN on a single video")
+parser = argparse.ArgumentParser(description="test TSM on a single video")
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('--video_file', type=str, default=None)
 group.add_argument('--frame_folder', type=str, default=None)

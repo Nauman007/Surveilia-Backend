@@ -114,11 +114,11 @@ def main():
     count = 0
     print("Ready!")
     
-    while True:
+    while cap.isOpened():
         count+=1
         i_frame += 1
         _, img = cap.read()  # (480, 640, 3) 0 ~ 255
-        if i_frame % 4 == 0:  # skip every other frame to obtain a suitable frame rate
+        if i_frame % 10 == 0:  # skip every other frame to obtain a suitable frame rate
             
             
             img_tran = transform([Image.fromarray(img).convert('RGB')])
@@ -154,7 +154,7 @@ def main():
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.7, (0, int(G), int(R)), 2)
         
-        cv2.putText(label, 'Accuracy: {:.2f}%'.format(probs[0]*100,'%'),
+        cv2.putText(label, 'Confidence: {:.2f}%'.format(probs[0]*100,'%'),
                     (width - 200 , int(height / 16)),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.7, (0, int(G), int(R)), 2)
