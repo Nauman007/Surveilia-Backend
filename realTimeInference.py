@@ -10,17 +10,9 @@ from ops.transforms import *
 from torch.nn import functional as F
 import os
 
-"""
-	To run this code on CPU set 
-	1- os.environ to ""
-	2- uncomment line 60 and comment line 61  
-	3- uncomment line 76 and comment line 75
-	4- uncomment line 124,125 and comment line 122,123
-	--> Inference on CPU is slow but if u want it fast there is 
-	    a little hack u can apply increase the value from 4 to 10 
-	    in line 121 i_frame % 10 == 0 it will work In Shaa Allah
-"""
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+
+
+GPU_FLAG = input("\nUSE GPU (y/n) : ")
 
 parser = argparse.ArgumentParser(description="TSM Testing on real time!!")
 parser.add_argument('-f',type=str,help='Provide a video!!')
@@ -60,9 +52,11 @@ net = TSN(num_class, 1, modality,
               is_shift=is_shift, shift_div=shift_div, shift_place=shift_place,
               non_local='_nl' in this_weights,
               )
+if GPU_FLAG is 'y':
+    checkpoint = torch.load(this_weights)
+else:
+    checkpoint = torch.load(this_weights,map_location=torch.device('cpu'))
 
-#checkpoint = torch.load(this_weights,map_location=torch.device('cpu'))
-checkpoint = torch.load(this_weights)
 
 checkpoint = checkpoint['state_dict']
 
@@ -74,9 +68,14 @@ replace_dict = {'base_model.classifier.weight': 'new_fc.weight',
 for k, v in replace_dict.items():
     if k in base_dict:
         base_dict[v] = base_dict.pop(k)
-
 net.load_state_dict(base_dict)
-net.cuda().eval()
+
+if GPU_FLAG is 'y':
+    net.cuda().eval()
+else:
+    net.eval()
+
+
 #net.eval()
 transform=torchvision.transforms.Compose([
                            Stack(roll=(this_arch in ['BNInception', 'InceptionV3'])),
@@ -87,19 +86,9 @@ transform=torchvision.transforms.Compose([
 
 
 WINDOW_NAME = 'Video Action Recognition'
-def main():
-    args = vars(parser.parse_args())
-    
-    if not args.get('f', False):
-        print("Openinig camera...")
-        cap = cv2.VideoCapture(0)
-        #cap = cv2.VideoCapture('http://192.168.43.1:8080/video')
-        
-    else:
-        print("loading Video...")
-        cap = cv2.VideoCapture(args['f'])
 
-    # set a lower resolution for speed up
+def doInferecing(cap,GPU_FLAG):
+# set a lower resolution for speed up
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
 
@@ -118,23 +107,31 @@ def main():
         count+=1
         i_frame += 1
         _, img = cap.read()  # (480, 640, 3) 0 ~ 255
+       
+            
         if i_frame % 4 == 0:  # skip every other frame to obtain a suitable frame rate
-            
-            
             img_tran = transform([Image.fromarray(img).convert('RGB')])
-            input = img_tran.view(-1, 3, img_tran.size(1),
-            img_tran.size(2)).unsqueeze(0).cuda()
+            if GPU_FLAG is 'y':
+                input1 = img_tran.view(-1, 3, img_tran.size(1),
+                img_tran.size(2)).unsqueeze(0).cuda()
+            else:
+                input1 = img_tran.view(-1, 3, img_tran.size(1),
+                img_tran.size(2)).unsqueeze(0)
+            
+            
+            
+            input = input1
             #input = img_tran.view(-1, 3, img_tran.size(1),
             #img_tran.size(2)).unsqueeze(0)
             with torch.no_grad():
-                logits = net(input)
-                h_x = torch.mean(F.softmax(logits, 1), dim=0).data
-                print(h_x)
-                pr, li = h_x.sort(0, True)
-                probs = pr.tolist()
-                idx = li.tolist()
-                #print(probs)
-                print(count,'-',categories[idx[0]],'Prob: ',probs[0])
+               logits = net(input)
+               h_x = torch.mean(F.softmax(logits, 1), dim=0).data
+               print(h_x)
+               pr, li = h_x.sort(0, True)
+               probs = pr.tolist()
+               idx = li.tolist()
+               #print(probs)
+               print(count,'-',categories[idx[0]],'Prob: ',probs[0])
 
         img = cv2.resize(img, (640, 480))
         img = img[:, ::-1]
@@ -150,7 +147,7 @@ def main():
             G = 255
             
         cv2.putText(label, 'EVENT: ' + categories[idx[0]],
-                    (10, int(height / 16)),
+                   (10, int(height / 16)),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.7, (0, int(G), int(R)), 2)
         
@@ -179,6 +176,21 @@ def main():
 
     cap.release()
     cv2.destroyAllWindows()
+def main():
+    args = vars(parser.parse_args())
+    
+    if not args.get('f', False):
+        print("Openinig camera...")
+        cap = cv2.VideoCapture(0)
+        #cap = cv2.VideoCapture('http://192.168.43.1:8080/video')
+        
+    else:
+        print("loading Video...")
+        cap = cv2.VideoCapture(args['f'])
+    doInferecing(cap,GPU_FLAG)
+
+
+        
 
 
 main()
