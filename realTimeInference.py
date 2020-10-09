@@ -87,7 +87,7 @@ transform=torchvision.transforms.Compose([
 
 WINDOW_NAME = 'Video Action Recognition'
 
-def doInferecing(cap,GPU_FLAG):
+def doInferecing(cap):
 # set a lower resolution for speed up
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
@@ -187,7 +187,7 @@ def main():
     else:
         print("loading Video...")
         cap = cv2.VideoCapture(args['f'])
-    doInferecing(cap,GPU_FLAG)
+    doInferecing(cap)
 
 
         
