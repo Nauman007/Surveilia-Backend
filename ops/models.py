@@ -141,7 +141,7 @@ class TSN(nn.Module):
                 from ops.temporal_shift import TemporalShift
                 for m in self.base_model.modules():
                     if isinstance(m, InvertedResidual) and len(m.conv) == 8 and m.use_res_connect:
-                        if self.print_spec:
+                        if self.is_shift:
                             print('Adding temporal shift... {}'.format(m.use_res_connect))
                         m.conv[0] = TemporalShift(m.conv[0], n_segment=self.num_segments, n_div=self.shift_div)
             if self.modality == 'Flow':
