@@ -20,6 +20,7 @@ else:
 
 parser = argparse.ArgumentParser(description="TSM Testing on real time!!")
 parser.add_argument('-f',type=str,help='Provide a video!!')
+parser.add_argument('--arch',type=str,help='provide architecture [mobilenetv2,resnet50]')
 
 print()
 print('======>>>>> Loading model ... Please wait ...')
@@ -33,8 +34,8 @@ def parse_shift_option_from_log_name(log_name):
         return True, int(strings[i].replace('shift', '')), strings[i + 1]
     else:
         return False, None, None
-        
-# args = parser.parse_args()
+
+args = parser.parse_args()
 
 this_weights='checkpoint/TSM_ucfcrime_RGB_resnet50_shift8_blockres_avg_segment8_e25/ckpt.best.pth.tar'
 
@@ -46,7 +47,7 @@ if 'RGB' in this_weights:
 # Get dataset categories.
 categories = ['Normal Activity','Abnormal Activity']
 num_class = len(categories)
-this_arch = 'mobilenetv2'
+this_arch = args.arch
 
 net = TSN(num_class, 1, modality,
               base_model=this_arch,
