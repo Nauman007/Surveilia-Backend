@@ -11,8 +11,12 @@ from torch.nn import functional as F
 import os
 
 
-
-GPU_FLAG = input("\nUSE GPU (y/n) : ")
+if torch.cuda.is_available():
+    print("\nYou have an \"Nvidia ",torch.cuda.get_device_name(0),"\" (Cuda enabled GPU)")
+    GPU_FLAG = input("USE GPU (y/n) : ")
+else:
+    print("NO GPU found, Running on CPU!")
+    GPU_FLAG = 'n'
 
 parser = argparse.ArgumentParser(description="TSM Testing on real time!!")
 parser.add_argument('-f',type=str,help='Provide a video!!')
@@ -42,7 +46,7 @@ if 'RGB' in this_weights:
 # Get dataset categories.
 categories = ['Normal Activity','Abnormal Activity']
 num_class = len(categories)
-this_arch = 'resnet50'
+this_arch = 'mobilenetv2'
 
 net = TSN(num_class, 1, modality,
               base_model=this_arch,
@@ -109,7 +113,7 @@ def doInferecing(cap):
         _, img = cap.read()  # (480, 640, 3) 0 ~ 255
        
             
-        if i_frame % 4 == 0:  # skip every other frame to obtain a suitable frame rate
+        if i_frame % 2 == 0:  # skip every other frame to obtain a suitable frame rate
             img_tran = transform([Image.fromarray(img).convert('RGB')])
             if GPU_FLAG is 'y':
                 input1 = img_tran.view(-1, 3, img_tran.size(1),
