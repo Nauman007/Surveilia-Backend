@@ -10,6 +10,10 @@ from ops.transforms import *
 from torch.nn import functional as F
 import os
 
+"""
+	provide --arch argument to
+	shift between architectures
+"""
 
 if torch.cuda.is_available():
     print("\nYou have an \"Nvidia ",torch.cuda.get_device_name(0),"\" (Cuda enabled GPU)")
@@ -20,7 +24,7 @@ else:
 
 parser = argparse.ArgumentParser(description="TSM Testing on real time!!")
 parser.add_argument('-f',type=str,help='Provide a video!!')
-parser.add_argument('--arch',type=str,help='provide architecture [mobilenetv2,resnet50]')
+parser.add_argument('--arch',type=str,help='provide architecture [mobilenetv2,resnet50]',default='resnet50')
 
 print()
 print('======>>>>> Loading model ... Please wait ...')
@@ -36,8 +40,12 @@ def parse_shift_option_from_log_name(log_name):
         return False, None, None
 
 args = parser.parse_args()
-
-this_weights='checkpoint/TSM_ucfcrime_RGB_resnet50_shift8_blockres_avg_segment8_e25/ckpt.best.pth.tar'
+#print(type(args.arch))
+if args.arch == 'mobilenetv2':
+    print('i am in if')
+    this_weights='checkpoint/TSM_ucfcrime_RGB_mobilenetv2_shift8_blockres_avg_segment8_e25/ckpt.best.pth.tar'
+else:
+    this_weights='checkpoint/TSM_ucfcrime_RGB_resnet50_shift8_blockres_avg_segment8_e25/ckpt.best.pth.tar'
 
 is_shift, shift_div, shift_place = parse_shift_option_from_log_name(this_weights)
 modality = 'RGB'
@@ -114,7 +122,7 @@ def doInferecing(cap):
         _, img = cap.read()  # (480, 640, 3) 0 ~ 255
        
             
-        if i_frame % 2 == 0:  # skip every other frame to obtain a suitable frame rate
+        if i_frame % 4 == 0:  # skip every other frame to obtain a suitable frame rate
             img_tran = transform([Image.fromarray(img).convert('RGB')])
             if GPU_FLAG is 'y':
                 input1 = img_tran.view(-1, 3, img_tran.size(1),
