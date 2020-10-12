@@ -393,8 +393,8 @@ def check_rootfolders():
             print('creating folder ' + folder)
             os.mkdir(folder)
 
-print(np.load('/TrainingAccuracy.npy'))
-print(np.load('/TrainingLoss.npy'))
+#print(np.load('/TrainingAccuracy.npy'))
+#print(np.load('/TrainingLoss.npy'))
 if __name__ == '__main__':
     main()
 
