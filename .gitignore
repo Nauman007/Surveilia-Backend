@@ -3,6 +3,7 @@ checkpoint/
 *.swp
 *.mp4
 *.npy
+testVideos/
 Myplots/
 UCFCrime/jpg/
 UCFCrime/CC/

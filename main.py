@@ -18,7 +18,7 @@ from opts import parser
 from ops import dataset_config
 from ops.utils import AverageMeter, accuracy
 from ops.temporal_shift import make_temporal_pool
-
+import numpy as np
 from tensorboardX import SummaryWriter
 
 best_prec1 = 0
@@ -70,7 +70,7 @@ def main():
     input_std = model.input_std
     policies = model.get_optim_policies()
     train_augmentation = model.get_augmentation(flip=False if 'something' in args.dataset or 'jester' in args.dataset else True)
-    print(model)
+
     model = torch.nn.DataParallel(model, device_ids=args.gpus).cuda()
 
     optimizer = torch.optim.SGD(policies,
@@ -171,7 +171,6 @@ def main():
 
     # define loss function (criterion) and optimizer
     if args.loss_type == 'nll':
-        print("I am using Cross Entropy as loss function")
         criterion = torch.nn.CrossEntropyLoss().cuda()
     else:
         raise ValueError("Unknown loss type")
@@ -215,8 +214,10 @@ def main():
                 'optimizer': optimizer.state_dict(),
                 'best_prec1': best_prec1,
             }, is_best)
-
-
+TrainingAccuracy=[]
+TrainingLoss=[]
+validationAccuracy=[]
+validationLoss=[]
 def train(train_loader, model, criterion, optimizer, epoch, log, tf_writer):
     batch_time = AverageMeter()
     data_time = AverageMeter()
@@ -246,7 +247,7 @@ def train(train_loader, model, criterion, optimizer, epoch, log, tf_writer):
         loss = criterion(output, target_var)
 
         # measure accuracy and record loss
-        prec1, prec5 = accuracy(output.data, target, topk=(1, 2))
+        prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
         losses.update(loss.item(), input.size(0))
         top1.update(prec1.item(), input.size(0))
         top5.update(prec5.item(), input.size(0))
@@ -274,14 +275,24 @@ def train(train_loader, model, criterion, optimizer, epoch, log, tf_writer):
                 epoch, i, len(train_loader), batch_time=batch_time,
                 data_time=data_time, loss=losses, top1=top1, top5=top5, lr=optimizer.param_groups[-1]['lr'] * 0.1))  # TODO
             print(output)
+            
             log.write(output + '\n')
             log.flush()
-
+        
+    #print('loss: ',loss.avg)
+    print('Training Accuracy: ',top1.avg)
+    print('Training Losses: ',losses.avg)
+    TrainingAccuracy.append(top1.avg)
+    TrainingLoss.append(losses.avg)
+    print('Length: ',len(TrainingLoss),len(TrainingAccuracy))
+    print('List: ',TrainingLoss)
+    print('List: ',TrainingAccuracy)
     tf_writer.add_scalar('loss/train', losses.avg, epoch)
     tf_writer.add_scalar('acc/train_top1', top1.avg, epoch)
     tf_writer.add_scalar('acc/train_top5', top5.avg, epoch)
     tf_writer.add_scalar('lr', optimizer.param_groups[-1]['lr'], epoch)
-
+    np.save('TrainingLoss.npy',TrainingLoss)
+    np.save('TrainingAccuracy.npy',TrainingAccuracy)
 
 def validate(val_loader, model, criterion, epoch, log=None, tf_writer=None):
     batch_time = AverageMeter()
@@ -302,7 +313,7 @@ def validate(val_loader, model, criterion, epoch, log=None, tf_writer=None):
             loss = criterion(output, target)
 
             # measure accuracy and record loss
-            prec1, prec5 = accuracy(output.data, target, topk=(1, 2))
+            prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
 
             losses.update(loss.item(), input.size(0))
             top1.update(prec1.item(), input.size(0))
@@ -328,6 +339,12 @@ def validate(val_loader, model, criterion, epoch, log=None, tf_writer=None):
     output = ('Testing Results: Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f} Loss {loss.avg:.5f}'
               .format(top1=top1, top5=top5, loss=losses))
     print(output)
+    print('Validation Accuracy: ',top1.avg)
+    print('Validation Losses: ',losses.avg)
+    validationAccuracy.append(top1.avg)
+    validationLoss.append(losses.avg)
+    print('Length: ',len(validationLoss))
+    print('List: ',validationLoss)
     if log is not None:
         log.write(output + '\n')
         log.flush()
@@ -336,6 +353,8 @@ def validate(val_loader, model, criterion, epoch, log=None, tf_writer=None):
         tf_writer.add_scalar('loss/test', losses.avg, epoch)
         tf_writer.add_scalar('acc/test_top1', top1.avg, epoch)
         tf_writer.add_scalar('acc/test_top5', top5.avg, epoch)
+    np.save('val_lost_values.npy',validationLoss)
+    np.save('validationAccuracy.npy',validationAccuracy)
 
     return top1.avg
 
@@ -374,7 +393,8 @@ def check_rootfolders():
             print('creating folder ' + folder)
             os.mkdir(folder)
 
-
+print(np.load('/TrainingAccuracy.npy'))
+print(np.load('/TrainingLoss.npy'))
 if __name__ == '__main__':
     main()
 
