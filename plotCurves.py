@@ -5,9 +5,13 @@ Train_loss_values = np.load('Myplots/TrainingLoss.npy')
 val_lost_values = np.load('Myplots/val_lost_values.npy')                   
 
                  
-TrainAccuracy = np.load('Myplots/TrainAccuracy.npy')
-ValidationAccuracy =np.load('Myplots/ValidationAccuracy.npy')                 
+TrainAccuracy = np.load('Myplots/TrainingAccuracy.npy')
+ValidationAccuracy =np.load('Myplots/validationAccuracy.npy')                 
 
+print(Train_loss_values)
+print(val_lost_values)
+print(TrainAccuracy)
+print(ValidationAccuracy)
 plt.tight_layout()
 #plot Train/val loss 
 plot1 = plt.figure(1)
