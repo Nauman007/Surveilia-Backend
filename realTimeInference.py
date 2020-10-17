@@ -11,6 +11,7 @@ from torch.nn import functional as F
 import os
 import time
 
+
 """
 	provide --arch argument to
 	shift between architectures
@@ -119,10 +120,10 @@ def doInferecing(cap):
     i_frame = -1
     count = 0
     print("Ready!")
-    
+
     while cap.isOpened():
         #t1 = time.time()
-        count+=1
+        #count+=1
         i_frame += 1
         _, img = cap.read()  # (480, 640, 3) 0 ~ 255
        
@@ -152,9 +153,9 @@ def doInferecing(cap):
                #print(probs)
                t2 = time.time()
                
-               print('[INFO] ===> ',count,'- EVENT - ',categories[idx[0]],'Prob: ',probs[0])
-               current_time = t2 -t1
-          
+            print('[INFO] ===> ',count,'- EVENT - ',categories[idx[0]],'Prob: ',probs[0])
+            current_time = t2 -t1
+
         img = cv2.resize(img, (640, 480))
         img = img[:, ::-1]
         height, width, _ = img.shape
