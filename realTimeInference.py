@@ -44,7 +44,7 @@ def parse_shift_option_from_log_name(log_name):
 args = parser.parse_args()
 #print(type(args.arch))
 if args.arch == 'mobilenetv2':
-    print('i am in if')
+
     this_weights='checkpoint/TSM_ucfcrime_RGB_mobilenetv2_shift8_blockres_avg_segment8_e25/ckpt.best.pth.tar'
 else:
     this_weights='checkpoint/TSM_ucfcrime_RGB_resnet50_shift8_blockres_avg_segment8_e25/ckpt.best.pth.tar'
@@ -87,10 +87,10 @@ net.load_state_dict(base_dict)
 
 if GPU_FLAG is 'y':
     net.cuda().eval()
-    skip_frames = 1
+    skip_frames = 2
 else:
     net.eval()
-    skip_frames = 2
+    skip_frames = 4
 
 #net.eval()
 transform=torchvision.transforms.Compose([
@@ -104,6 +104,7 @@ transform=torchvision.transforms.Compose([
 WINDOW_NAME = 'Video Action Recognition'
 
 def doInferecing(cap):
+    
 # set a lower resolution for speed up
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
@@ -114,12 +115,13 @@ def doInferecing(cap):
     cv2.resizeWindow(WINDOW_NAME, 640, 480)
     cv2.moveWindow(WINDOW_NAME, 0, 0)
     cv2.setWindowTitle(WINDOW_NAME, WINDOW_NAME)
-
+    t = None
     i_frame = -1
     count = 0
     print("Ready!")
     
     while cap.isOpened():
+        #t1 = time.time()
         count+=1
         i_frame += 1
         _, img = cap.read()  # (480, 640, 3) 0 ~ 255
@@ -143,14 +145,16 @@ def doInferecing(cap):
             with torch.no_grad():
                logits = net(input)
                h_x = torch.mean(F.softmax(logits, 1), dim=0).data
-               print(h_x)
+               print('[INFO] ===> PROB - [Normal,Abnormal]',h_x)
                pr, li = h_x.sort(0, True)
                probs = pr.tolist()
                idx = li.tolist()
                #print(probs)
                t2 = time.time()
-               print(count,'-',categories[idx[0]],'Prob: ',probs[0])
+               
+               print('[INFO] ===> ',count,'- EVENT - ',categories[idx[0]],'Prob: ',probs[0])
                current_time = t2 -t1
+          
         img = cv2.resize(img, (640, 480))
         img = img[:, ::-1]
         height, width, _ = img.shape
@@ -173,13 +177,15 @@ def doInferecing(cap):
                     (width - 250 , int(height / 16)),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.7, (0, int(G), int(R)), 2)
-        cv2.putText(label, 'FPS: {:.1f} Frame/s'.format(1 / current_time),
+        fps = 1 / current_time
+        cv2.putText(label, 'FPS: {:.1f} Frame/s'.format(fps),
                     (10, int(height / 6)),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.7, (0, 0, 0), 2)
                   
         img = np.concatenate((img, label), axis=0)
         cv2.imshow(WINDOW_NAME, img)
+        
  
         key = cv2.waitKey(1)
         
@@ -195,7 +201,12 @@ def doInferecing(cap):
             else:
                 cv2.setWindowProperty(WINDOW_NAME, cv2.WND_PROP_FULLSCREEN,
                                       cv2.WINDOW_NORMAL)
-
+        if t is None:
+            t = time.time()
+        else:
+            nt = time.time()
+            count += 1
+            t = nt
     cap.release()
     cv2.destroyAllWindows()
 def main():
