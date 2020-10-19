@@ -126,26 +126,17 @@ def plot_classification_report(classification_report, title='Classification repo
 
 
 def main():
-    sampleClassificationReport = """precision    recall  f1-score   support
+    
 
-          Acacia       0.62      1.00      0.76        66
-          Blossom       0.93      0.93      0.93        40
-          Camellia       0.59      0.97      0.73        67
-          Daisy       0.47      0.92      0.62       272
-          Echium       1.00      0.16      0.28       413
+    sample2 =  """Classification Report: 
+               precision    recall  f1-score   support
 
-        avg / total       0.77      0.57      0.49       858"""
+           Normal       0.88      0.80      0.84        74
+           Abnormal       0.79      0.88      0.83        66
 
-    sample2 =  """precision    recall  f1-score   support
-
-           0       0.65      0.98      0.78        44
-           1       1.00      0.25      0.40        32
-           2       0.88      0.93      0.90        41
-           3       1.00      0.89      0.94        35
-           4       0.82      1.00      0.90        31
-           5       1.00      0.93      0.96        43
-
-weighted avg       0.89      0.85      0.83       226"""
+    
+weighted avg       0.84      0.84      0.84       140
+"""
     plot_classification_report(sample2)
     plt.savefig('test_plot_classif_report1.png', dpi=200, format='png', bbox_inches='tight')
     plt.close()

@@ -1,6 +1,6 @@
 import numpy as np
 
-data = np.load('cm.npy')
+data = np.load('Myplots/cm.npy')
 print('NO. of Classes')
 print('-'*20)
 print('0 - Normal Activity')
