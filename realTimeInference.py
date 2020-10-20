@@ -25,7 +25,7 @@ if torch.cuda.is_available():
 else:
     print("NO GPU found, Running on CPU!")
     GPU_FLAG = 'n'
-
+startime = time.time()
 parser = argparse.ArgumentParser(description="TSM Testing on real time!!")
 parser.add_argument('-f',type=str,help='Provide a video!!')
 parser.add_argument('--arch',type=str,help='provide architecture [mobilenetv2,resnet50]',default='resnet50')
@@ -198,11 +198,13 @@ def doInferecing(cap):
                        0.7, (0, int(G), int(R)), 2)
         
             fps = 1 / current_time
-            if args.get('f',True):
-                FpsList.append(float(fps))
-                maxFps=max(FpsList)
-                estFps=sum(FpsList)/len(FpsList)
-        
+            #if args.get('f',True):
+            FpsList.append(float(fps))
+            maxFps=max(FpsList)
+            estFps=sum(FpsList)/len(FpsList)
+            #else:
+                #maxFps=-1
+                #estFps=-1
             cv2.putText(label, 'FPS: {:.1f} Frame/s'.format(fps),
                        (10, int(height / 6)),
                        cv2.FONT_HERSHEY_SIMPLEX,
@@ -244,13 +246,14 @@ def doInferecing(cap):
             #maxFps=None
             
             
-    
+    execTime = time.time() - startime
     print()
     
     print('<<< [INFO] >>> Total Abnormal Probs : ',len(maxAbnormalProb))
     print('<<< [INFO] >>> Max Abnormality Prob : {:.2f}'.format(max(maxAbnormalProb)))
     print('<<< [INFO] >>> Max FPS achieved     : {:.1f}'.format(maxFps))
     print('<<< [INFO] >>> Averge Estimated FPS : {:.1f}'.format(estFps)) 
+    print('<<< [INFO] >>> Total Infernece Time : {:.2f} seconds'.format(execTime))
     
 def main():
     #args = vars(parser.parse_args())
