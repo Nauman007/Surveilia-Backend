@@ -10,6 +10,7 @@ from ops.transforms import *
 from torch.nn import functional as F
 import os
 import time
+from torchsummary import summary
 
 
 """
@@ -18,7 +19,7 @@ import time
 """
 
 if torch.cuda.is_available():
-    print("\nYou have an \"Nvidia ",torch.cuda.get_device_name(0),"\" (Cuda enabled GPU)")
+    print("\nYou have an ",torch.cuda.get_device_name(0)," (Cuda enabled GPU)")
     GPU_FLAG = input("USE GPU (y/n) : ")
     
 else:
@@ -30,7 +31,7 @@ parser.add_argument('-f',type=str,help='Provide a video!!')
 parser.add_argument('--arch',type=str,help='provide architecture [mobilenetv2,resnet50]',default='resnet50')
 
 print()
-print('======>>>>> Loading model ... Please wait ...')
+
 #just adding some comments to check git 
 def parse_shift_option_from_log_name(log_name):
     if 'shift' in log_name:
@@ -59,7 +60,7 @@ if 'RGB' in this_weights:
 categories = ['Normal Activity','Abnormal Activity']
 num_class = len(categories)
 this_arch = args.arch
-
+print("[INFO] >> Model loading weights from disk!!")
 net = TSN(num_class, 1, modality,
               base_model=this_arch,
               consensus_type='avg',
@@ -68,6 +69,7 @@ net = TSN(num_class, 1, modality,
               is_shift=is_shift, shift_div=shift_div, shift_place=shift_place,
               non_local='_nl' in this_weights,
               )
+
 if GPU_FLAG is 'y':
     checkpoint = torch.load(this_weights)
 else:
@@ -85,10 +87,11 @@ for k, v in replace_dict.items():
     if k in base_dict:
         base_dict[v] = base_dict.pop(k)
 net.load_state_dict(base_dict)
-
+print("\n[INFO] >> Model loading Successfull")
 if GPU_FLAG is 'y':
     net.cuda().eval()
     skip_frames = 2
+    summary(net,(1,3,224,224))
 else:
     net.eval()
     skip_frames = 4
@@ -99,6 +102,7 @@ transform=torchvision.transforms.Compose([
                            ToTorchFormatTensor(div=(this_arch not in ['BNInception', 'InceptionV3'])),
                            GroupNormalize(net.input_mean, net.input_std),
                        ])
+
 
 
 
@@ -120,14 +124,13 @@ def doInferecing(cap):
     i_frame = -1
     count = 0
     print("Ready!")
-
+    print(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     while cap.isOpened():
         #t1 = time.time()
         #count+=1
         i_frame += 1
         _, img = cap.read()  # (480, 640, 3) 0 ~ 255
-       
-            
+        
         if i_frame % skip_frames == 0:  # skip every other frame to obtain a suitable frame rate  
             t1 = time.time()
             img_tran = transform([Image.fromarray(img).convert('RGB')])
@@ -146,14 +149,14 @@ def doInferecing(cap):
             with torch.no_grad():
                logits = net(input)
                h_x = torch.mean(F.softmax(logits, 1), dim=0).data
-               print('[INFO] ===> PROB - [Normal,Abnormal]',h_x)
+               print(count,'[INFO] >>> PROB  - [Normal,Abnormal]',h_x)
                pr, li = h_x.sort(0, True)
                probs = pr.tolist()
                idx = li.tolist()
                #print(probs)
                t2 = time.time()
                
-            print('[INFO] ===> ',count,'- EVENT - ',categories[idx[0]],'Prob: ',probs[0])
+            print('<<< [INFO] >>>','EVENT - ',categories[idx[0]],'Prob: ',probs[0])
             current_time = t2 -t1
 
         img = cv2.resize(img, (640, 480))
