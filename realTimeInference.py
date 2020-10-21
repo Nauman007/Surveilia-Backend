@@ -11,6 +11,8 @@ from torch.nn import functional as F
 import os
 import time
 from torchsummary import summary
+import os
+import datetime
 
 
 """
@@ -29,6 +31,7 @@ startime = time.time()
 parser = argparse.ArgumentParser(description="TSM Testing on real time!!")
 parser.add_argument('-f',type=str,help='Provide a video!!')
 parser.add_argument('--arch',type=str,help='provide architecture [mobilenetv2,resnet50]',default='resnet50')
+#Create Necessary Folders
 
 print()
 
@@ -107,13 +110,16 @@ transform=torchvision.transforms.Compose([
 
 WINDOW_NAME = 'Real-Time Video Action Recognition'
 
-##ToDo: Save Snapshot when anaomly occurs:
-def saveSnapShot(img):
-    pass
-    
-def recordAnaomlousEvent():
-    pass
 
+def saveSnapShot(img):
+    x = datetime.datetime.now()
+    path = './appData/Anoamly_Images/'
+    getImageName = path+str(x.strftime("%A") + "_" + str(x.date()) + " @ " + str(x.strftime("%I:%M:%S")))+'.jpg'
+    cv2.imwrite(getImageName,img)
+
+#ToDo: Record anamolous event    
+def recordAnaomlousEvent(writer,frame):
+    pass
 
 #get max abnormal prob not an efficient way may use to much ram
 maxAbnormalProb =[-1]
@@ -138,14 +144,16 @@ def doInferecing(cap):
     print("Ready!")
 
 
-
+    c = 0
     while cap.isOpened():
         i_frame += 1
         hasFrame, img = cap.read()  # (480, 640, 3) 0 ~ 255
-        img=cv2.flip(img,180)
+        
         
             
         if hasFrame:
+            (H,W) = img.shape[:2]
+            img=cv2.flip(img,180)
             
             img_tran = transform([Image.fromarray(img).convert('RGB')])
             if i_frame % skip_frames == 0:  # skip every other frame to obtain a suitable frame rate  
@@ -182,10 +190,15 @@ def doInferecing(cap):
             if categories[idx[0]] == 'Abnormal Activity':
                 R = 255
                 G = 0  
+                Abnormality = True
+                #c+=1
+                tempThres = probs[0]
+                #recordAnaomlousEvent(writer,img)
                 maxAbnormalProb.append(float(probs[0]))
             else:
                 R = 0
                 G = 255
+                Abnormality = False
             
             cv2.putText(label, 'EVENT: ' + categories[idx[0]],
                        (10, int(height / 16)),
@@ -211,7 +224,17 @@ def doInferecing(cap):
                        0.7, (0, 0, 0), 2)
                   
             img = np.concatenate((img, label), axis=0)
+            
+            #Saving Anaomlous Event Image
+            if Abnormality:
+                if tempThres > 0.75:
+                    saveSnapShot(img)
+            
+            #writer = cv2.VideoWriter('output.avi',cv2.VideoWriter_fourcc(*'MJPG'),30,(W,H),True)
+            #img=cv2.cvtColor(img,cv2.COLOR_RGB2BGR)
             cv2.imshow(WINDOW_NAME, img)
+            #recordAnaomlousEvent(writer,img)
+            #writer.write(img)
             #print('-'*20)
             key = cv2.waitKey(1)
         
@@ -239,6 +262,7 @@ def doInferecing(cap):
             #i_frame = 0
             #cap.set(cv2.CAP_PROP_POS_FRAMES,0)
             cap.release()
+            #writer.release()
             cv2.destroyAllWindows()
             #Clearing Variables for re-running
             #estFps=None
@@ -256,8 +280,11 @@ def doInferecing(cap):
     print('<<< [INFO] >>> Total Infernece Time : {:.2f} seconds'.format(execTime))
     
 def main():
-    #args = vars(parser.parse_args())
-    
+    try:
+        os.makedirs('./appData/Anoamly_Clips')
+        os.makedirs('./appData/Anoamly_Images')
+    except OSError as e:
+        pass
     if not args.get('f', False):
         print("Openinig camera...")
         cap = cv2.VideoCapture(0)
