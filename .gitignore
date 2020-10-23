@@ -4,6 +4,7 @@ checkpoint/
 *.mp4
 *.npy
 *.jpg
+appData/
 testVideos/
 Myplots/
 UCFCrime/jpg/
