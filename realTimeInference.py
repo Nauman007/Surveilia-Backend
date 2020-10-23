@@ -112,6 +112,7 @@ WINDOW_NAME = 'Real-Time Video Action Recognition'
 
 
 def saveSnapShot(img):
+    #img=cv2.flip(img,0)
     x = datetime.datetime.now()
     path = './appData/Anoamly_Images/'
     getImageName = path+str(x.strftime("%A") + "_" + str(x.date()) + " @ " + str(x.strftime("%I:%M:%S")))+'.jpg'
@@ -141,6 +142,10 @@ def doInferecing(cap):
     t = None
     i_frame = -1
     count = 0
+    #variable to hold writer object
+    writer = None
+    
+    
     print("Ready!")
 
 
@@ -152,8 +157,9 @@ def doInferecing(cap):
         
             
         if hasFrame:
-            (H,W) = img.shape[:2]
-            img=cv2.flip(img,180)
+           
+            
+            #img=cv2.flip(img,180)
             
             img_tran = transform([Image.fromarray(img).convert('RGB')])
             if i_frame % skip_frames == 0:  # skip every other frame to obtain a suitable frame rate  
@@ -183,9 +189,9 @@ def doInferecing(cap):
                 current_time = t2 -t1
         
             img = cv2.resize(img, (640, 480))
-            img = img[:, ::-1]
+            #img = img[:, ::-1]
             height, width, _ = img.shape
-            label = np.zeros([height // 5, width, 3]).astype('uint8') + 255
+           # label = np.zeros([height // 5, width, 3]).astype('uint8') + 255
         
             if categories[idx[0]] == 'Abnormal Activity':
                 R = 255
@@ -200,13 +206,13 @@ def doInferecing(cap):
                 G = 255
                 Abnormality = False
             
-            cv2.putText(label, 'EVENT: ' + categories[idx[0]],
-                       (10, int(height / 16)),
+            cv2.putText(img, 'EVENT: ' + categories[idx[0]],
+                       (20,int(height/16)),
                        cv2.FONT_HERSHEY_SIMPLEX,
                        0.7, (0, int(G), int(R)), 2)
         
-            cv2.putText(label, 'Confidence: {:.2f}%'.format(probs[0]*100,'%'),
-                       (width - 250 , int(height / 16)),
+            cv2.putText(img, 'Confidence: {0:.2f}%'.format(probs[0]*100,'%'),
+                       (20 , int(height - 420)),
                        cv2.FONT_HERSHEY_SIMPLEX,
                        0.7, (0, int(G), int(R)), 2)
         
@@ -218,21 +224,33 @@ def doInferecing(cap):
             #else:
                 #maxFps=-1
                 #estFps=-1
-            cv2.putText(label, 'FPS: {:.1f} Frame/s'.format(fps),
-                       (10, int(height / 6)),
+            cv2.putText(img, 'FPS: {0:.1f}'.format(fps),
+                       (width-150, int(height / 16)),
                        cv2.FONT_HERSHEY_SIMPLEX,
-                       0.7, (0, 0, 0), 2)
+                       0.7, (0, 255, 255), 2)
                   
-            img = np.concatenate((img, label), axis=0)
+            #img = np.concatenate((img, label), axis=0)
+            if writer is None:
+                fourcc = cv2.VideoWriter_fourcc(*'XVID')
+                (H,W) = img.shape[:2]
+                x = datetime.datetime.now()
+                path = './appData/Anoamly_Clips/'
+                getVidName = path+str(x.strftime("%A") + "_" + str(x.date()) + " @ " + str(x.strftime("%I:%M:%S")))+'.avi'
+                writer = cv2.VideoWriter(getVidName, fourcc, 20.0, (W,H),True)
             
             #Saving Anaomlous Event Image
             if Abnormality:
+                writer.write(img)
                 if tempThres > 0.75:
+                    
                     saveSnapShot(img)
+            
+            cv2.imshow(WINDOW_NAME, img)
+            
             
             #writer = cv2.VideoWriter('output.avi',cv2.VideoWriter_fourcc(*'MJPG'),30,(W,H),True)
             #img=cv2.cvtColor(img,cv2.COLOR_RGB2BGR)
-            cv2.imshow(WINDOW_NAME, img)
+            
             #recordAnaomlousEvent(writer,img)
             #writer.write(img)
             #print('-'*20)
@@ -262,7 +280,7 @@ def doInferecing(cap):
             #i_frame = 0
             #cap.set(cv2.CAP_PROP_POS_FRAMES,0)
             cap.release()
-            #writer.release()
+            writer.release()
             cv2.destroyAllWindows()
             #Clearing Variables for re-running
             #estFps=None
@@ -294,6 +312,7 @@ def main():
     else:
         print("loading Video...")
         cap = cv2.VideoCapture(args['f'])
+        
         
     doInferecing(cap)
 
