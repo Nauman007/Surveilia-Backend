@@ -14,6 +14,7 @@ from torchsummary import summary
 import os
 import datetime
 import glob
+import csv
 
 """
 	provide --arch argument to
@@ -117,14 +118,25 @@ transform=torchvision.transforms.Compose([
 WINDOW_NAME = 'Real-Time Video Action Recognition'
 
 # ToDo: Implement Complete logic
+srNo = 0
+
 def getStatsOfAbnormalActivity():
+    global srNo
+    #srNo +=1
     x = datetime.datetime.now()
-    fieldnames = ['Sr.#','Event','Date','Start_time','Ending_time']
     
-    anaomlyDetails = str(x.strftime("%A") + "_" + str(x.date()) + " @ " + str(x.strftime("%I:%M:%S")))+'\n'
-    f = open("./appData/Details.txt", "a")
-    f.write(anaomlyDetails)
-    f.close()
+    with open('./appData/Details.csv',mode='a') as csv_file:
+        fieldnames = ['Event','Date','Time']
+        writer = csv.DictWriter(csv_file,fieldnames = fieldnames)
+        if csv_file.tell() == 0:        
+            writer.writeheader()
+        date = str(x.strftime("%A") + "_" + str(x.date()))
+        time = str(x.strftime("%I:%M:%S"))
+   
+        writer.writerow({'Event':'Abnormal','Date':date,'Time':time})
+    
+    #anaomlyDetails = str(x.strftime("%A") + "_" + str(x.date()) + " @ " + str(x.strftime("%I:%M:%S")))+'\n'
+   
 
 
 
@@ -135,6 +147,7 @@ estFps = None
 maxFps = None
 
 def doInferecing(cap): 
+
     # set a lower resolution for speed up
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
@@ -152,6 +165,7 @@ def doInferecing(cap):
     imageName = 0
     #variable to hold writer object
     writer = None
+    c=0
 
     print("Ready!")
 
@@ -195,6 +209,7 @@ def doInferecing(cap):
                 G = 0  
                 Abnormality = True
                 tempThres = probs[0]
+                c+=1
                 maxAbnormalProb.append(float(probs[0]))
                 
             else:
@@ -238,13 +253,16 @@ def doInferecing(cap):
             #Saving Anaomlous Event Image and Clip
             if Abnormality:
                 writer.write(img)
-                if tempThres > 0.75:
+                if c % 30 == 0:
                     getStatsOfAbnormalActivity()
+                if tempThres > 0.75:
+                    
                     path = './appData/Anoamly_Images/'
                     index = (len(glob.glob(path+'*.jpg')))
                     #imageName = getFileName(path+'.jpg')
                     imageName = path+'Abnormal_Event_{0}.jpg'.format(index+1)
                     cv2.imwrite(imageName,img)
+                    
             
             cv2.imshow(WINDOW_NAME, img)
             
