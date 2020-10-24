@@ -13,7 +13,7 @@ import time
 from torchsummary import summary
 import os
 import datetime
-
+import glob
 
 """
 	provide --arch argument to
@@ -116,11 +116,16 @@ transform=torchvision.transforms.Compose([
 
 WINDOW_NAME = 'Real-Time Video Action Recognition'
 
-
-def getFileName(path,fileExtension):
+# ToDo: Implement Complete logic
+def getStatsOfAbnormalActivity():
     x = datetime.datetime.now()
-    getName = path+str(x.strftime("%A") + "_" + str(x.date()) + " @ " + str(x.strftime("%I:%M:%S")))+fileExtension
-    return getName
+    fieldnames = ['Sr.#','Event','Date','Start_time','Ending_time']
+    
+    anaomlyDetails = str(x.strftime("%A") + "_" + str(x.date()) + " @ " + str(x.strftime("%I:%M:%S")))+'\n'
+    f = open("./appData/Details.txt", "a")
+    f.write(anaomlyDetails)
+    f.close()
+
 
 
 #get max abnormal prob not an efficient way may use to much ram
@@ -144,7 +149,7 @@ def doInferecing(cap):
     t = None
     i_frame = -1
     count = 0
-    
+    imageName = 0
     #variable to hold writer object
     writer = None
 
@@ -191,6 +196,7 @@ def doInferecing(cap):
                 Abnormality = True
                 tempThres = probs[0]
                 maxAbnormalProb.append(float(probs[0]))
+                
             else:
                 R = 0
                 G = 255
@@ -218,20 +224,26 @@ def doInferecing(cap):
                        (width-150, int(height / 16)),
                        cv2.FONT_HERSHEY_SIMPLEX,
                        0.7, (0, 255, 255), 2)
-                  
+
             if writer is None:
-                fourcc = cv2.VideoWriter_fourcc(*'XVID')
+                fourcc = cv2.VideoWriter_fourcc(*'MJPG')
                 (H,W) = img.shape[:2]
                 path = './appData/Anoamly_Clips/'
-                getVidName = getFileName(path,'.avi')
-                writer = cv2.VideoWriter(getVidName, fourcc, 20.0, (W,H),True)
+                name = (len(glob.glob(path+'*.avi')))
+                
+                getVidName = path+'Abnormal_Event_{0}.avi'.format(name+1)
+                writer = cv2.VideoWriter(getVidName, fourcc, 30.0, (W,H),True)
+                
             
             #Saving Anaomlous Event Image and Clip
             if Abnormality:
                 writer.write(img)
                 if tempThres > 0.75:
+                    getStatsOfAbnormalActivity()
                     path = './appData/Anoamly_Images/'
-                    imageName = getFileName(path,'.jpg')
+                    index = (len(glob.glob(path+'*.jpg')))
+                    #imageName = getFileName(path+'.jpg')
+                    imageName = path+'Abnormal_Event_{0}.jpg'.format(index+1)
                     cv2.imwrite(imageName,img)
             
             cv2.imshow(WINDOW_NAME, img)
