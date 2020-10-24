@@ -130,8 +130,8 @@ def getStatsOfAbnormalActivity():
         writer = csv.DictWriter(csv_file,fieldnames = fieldnames)
         if csv_file.tell() == 0:        
             writer.writeheader()
-        date = str(x.strftime("%A") + "_" + str(x.date()))
-        time = str(x.strftime("%I:%M:%S"))
+        date = str(x.strftime("%A") + "/" + str(x.date()))
+        time = str(x.strftime("%H:%M:%S"))
    
         writer.writerow({'Event':'Abnormal','Date':date,'Time':time})
     
@@ -253,9 +253,10 @@ def doInferecing(cap):
             #Saving Anaomlous Event Image and Clip
             if Abnormality:
                 writer.write(img)
-                if c % 30 == 0:
+                # record stat every two seconds if exists
+                if c % 60 == 0:
                     getStatsOfAbnormalActivity()
-                if tempThres > 0.75:
+                #if tempThres > 0.75:
                     
                     path = './appData/Anoamly_Images/'
                     index = (len(glob.glob(path+'*.jpg')))
@@ -304,7 +305,7 @@ def doInferecing(cap):
     # Display Results
     print('<<< [INFO] >>> Total Abnormal Probs : ',len(maxAbnormalProb))
     print('<<< [INFO] >>> Max Abnormality Prob : {:.2f}'.format(max(maxAbnormalProb)))
-    print('<<< [INFO] >>> Max Abnormality Prob : {:.2f}'.format(sum(maxAbnormalProb)/len(maxAbnormalProb)))
+    print('<<< [INFO] >>> Avg Abnormality Prob : {:.2f}'.format(sum(maxAbnormalProb)/len(maxAbnormalProb)))
     print('<<< [INFO] >>> Max FPS achieved     : {:.1f}'.format(maxFps))
     print('<<< [INFO] >>> Averge Estimated FPS : {:.1f}'.format(estFps)) 
     print('<<< [INFO] >>> Total Infernece Time : {:.2f} seconds'.format(execTime))
