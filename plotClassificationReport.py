@@ -115,6 +115,7 @@ def plot_classification_report(classification_report, title='Classification repo
     print('plotMat: {0}'.format(plotMat))
     print('support: {0}'.format(support))
 
+
     xlabel = 'Metrics'
     ylabel = 'Classes'
     xticklabels = ['Precision', 'Recall', 'F1-score']
