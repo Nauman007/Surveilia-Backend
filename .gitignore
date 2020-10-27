@@ -4,6 +4,7 @@ checkpoint/
 *.mp4
 *.npy
 *.jpg
+plotClassificationReport.py
 appData/
 testVideos/
 Myplots/
