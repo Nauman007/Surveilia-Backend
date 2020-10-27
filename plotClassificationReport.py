@@ -131,11 +131,11 @@ def main():
     sample2 =  """Classification Report: 
                precision    recall  f1-score   support
 
-           Normal       0.88      0.80      0.84        74
-           Abnormal       0.79      0.88      0.83        66
+           Normal       0.86      0.88      0.87        74
+           Abnormal       0.86      0.83      0.85        66
 
-    
-weighted avg       0.84      0.84      0.84       140
+   
+weighted avg       0.86      0.86      0.86       140
 """
     plot_classification_report(sample2)
     plt.savefig('test_plot_classif_report1.png', dpi=200, format='png', bbox_inches='tight')
