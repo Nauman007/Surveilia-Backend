@@ -117,14 +117,8 @@ transform=torchvision.transforms.Compose([
 
 WINDOW_NAME = 'Real-Time Video Action Recognition'
 
-# ToDo: Implement Complete logic
-srNo = 0
-
 def getStatsOfAbnormalActivity():
-    global srNo
-    #srNo +=1
-    x = datetime.datetime.now()
-    
+    x = datetime.datetime.now()   
     with open('./appData/Details.csv',mode='a') as csv_file:
         fieldnames = ['Event','Date','Time']
         writer = csv.DictWriter(csv_file,fieldnames = fieldnames)
@@ -135,11 +129,6 @@ def getStatsOfAbnormalActivity():
    
         writer.writerow({'Event':'Abnormal','Date':date,'Time':time})
     
-    #anaomlyDetails = str(x.strftime("%A") + "_" + str(x.date()) + " @ " + str(x.strftime("%I:%M:%S")))+'\n'
-   
-
-
-
 #get max abnormal prob not an efficient way may use to much ram
 maxAbnormalProb =[-1]
 FpsList = []
@@ -289,11 +278,14 @@ def doInferecing(cap):
                 count += 1
                 t = nt
         else:       
+            #Uncomment below lines to run code unfinitely and comment cap.release and writer,release
+            
             #i_frame = 0
             #cap.set(cv2.CAP_PROP_POS_FRAMES,0)
             cap.release()
             writer.release()
             cv2.destroyAllWindows()
+                        
             #Clearing Variables for re-running
             #estFps=None
             #maxAbnormalProb.clear()
