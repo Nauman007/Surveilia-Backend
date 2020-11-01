@@ -4,6 +4,9 @@ checkpoint/
 *.mp4
 *.npy
 *.jpg
+*.dat
+*.prof
+profilingData
 plotClassificationReport.py
 appData/
 testVideos/
