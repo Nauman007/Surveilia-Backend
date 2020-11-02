@@ -17,6 +17,7 @@ import glob
 import csv
 from memory_profiler import profile
 
+
 """
 	provide --arch argument to
 	shift between architectures
@@ -303,8 +304,8 @@ def doInferecing(cap):
     print('<<< [INFO] >>> Max FPS achieved     : {:.1f}'.format(maxFps))
     print('<<< [INFO] >>> Averge Estimated FPS : {:.1f}'.format(estFps)) 
     print('<<< [INFO] >>> Total Infernece Time : {:.2f} seconds'.format(execTime))
-  
-@profile(precision=4)  
+
+@profile
 def main():
     # Create necessary folder to hold data (Anoamly Clips and Images)
     # make directories if donot exist else pass
