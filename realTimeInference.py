@@ -21,25 +21,11 @@ from memory_profiler import profile
 """
 	provide --arch argument to
 	shift between architectures
+	default arch is mobilenet
 """
 
-# Check if CUDA enabled GPU is available else run on CPU
-if torch.cuda.is_available():
-    print("\nYou have an ",torch.cuda.get_device_name(0)," (Cuda enabled GPU)")
-    GPU_FLAG = input("USE GPU (y/n) : ")    
-else:
-    print("NO GPU found, Running on CPU!")
-    GPU_FLAG = 'n'
-
-#Start time to calculate total inference time
 startime = time.time()
 
-parser = argparse.ArgumentParser(description="TSM Testing on real time!!")
-parser.add_argument('-f',type=str,help='Provide a video!!')
-parser.add_argument('--arch',type=str,help='provide architecture [mobilenetv2,resnet50]',default='mobilenetv2')
-
-
-print()
 
 # Parsing weights file to add temporal shift or not.
 def parse_shift_option_from_log_name(log_name):
@@ -52,73 +38,7 @@ def parse_shift_option_from_log_name(log_name):
     else:
         return False, None, None
 
-args = vars(parser.parse_args())
-
-# switch between archs based on selected arch
-if args.get('arch') == 'mobilenetv2':
-    this_weights='checkpoint/TSM_ucfcrime_RGB_mobilenetv2_shift8_blockres_avg_segment8_e25/ckpt.best.pth.tar'
-else:
-    this_weights='checkpoint/TSM_ucfcrime_RGB_resnet50_shift8_blockres_avg_segment8_e25/ckpt.best.pth.tar'
-
-is_shift, shift_div, shift_place = parse_shift_option_from_log_name(this_weights)
-
-modality = 'RGB'
-
-if 'RGB' in this_weights:
-	modality = 'RGB'
-
-# Get dataset categories.
-categories = ['Normal Activity','Abnormal Activity']
-num_class = len(categories)
-this_arch = args.get('arch')
-
-print("[INFO] >> Model loading weights from disk!!")
-
-net = TSN(num_class, 1, modality,
-              base_model=this_arch,
-              consensus_type='avg',
-              img_feature_dim='225',
-              #pretrain=args.pretrain,
-              is_shift=is_shift, shift_div=shift_div, shift_place=shift_place,
-              non_local='_nl' in this_weights,
-              )
-
-# See GPU_FLAG to check where to load the weights on CPU or GPU
-if GPU_FLAG == 'y':
-    checkpoint = torch.load(this_weights)
-else:
-    checkpoint = torch.load(this_weights,map_location=torch.device('cpu'))
-
-checkpoint = checkpoint['state_dict']
-
-base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(checkpoint.items())}
-replace_dict = {'base_model.classifier.weight': 'new_fc.weight',
-                    'base_model.classifier.bias': 'new_fc.bias',
-               }
-
-for k, v in replace_dict.items():
-    if k in base_dict:
-        base_dict[v] = base_dict.pop(k)
-net.load_state_dict(base_dict)
-
-print("\n[INFO] >> Model loading Successfull")
-
-if GPU_FLAG == 'y':
-    net.cuda().eval()
-    skip_frames = 2
-    summary(net,(1,3,224,224))
-else:
-    net.eval()
-    skip_frames = 4
-
-transform=torchvision.transforms.Compose([
-                           Stack(roll=(this_arch in ['BNInception', 'InceptionV3'])),
-                           ToTorchFormatTensor(div=(this_arch not in ['BNInception', 'InceptionV3'])),
-                           GroupNormalize(net.input_mean, net.input_std),
-                       ])
-
-WINDOW_NAME = 'Real-Time Video Action Recognition'
-
+# Record Anaomlous event to a file
 def getStatsOfAbnormalActivity():
     x = datetime.datetime.now()   
     with open('./appData/Details.csv',mode='a') as csv_file:
@@ -131,15 +51,77 @@ def getStatsOfAbnormalActivity():
    
         writer.writerow({'Event':'Abnormal','Date':date,'Time':time})
     
-#get max abnormal prob not an efficient way may use to much ram
 maxAbnormalProb =[-1]
 FpsList = []
 estFps = None
 maxFps = None
 
-#@profile
-def doInferecing(cap): 
+# Start Inferencing in real-time
+def doInferecing(cap,args,GPU_FLAG): 
 
+    # switch between archs based on selected arch
+    if args.get('arch') == 'mobilenetv2':
+        this_weights='checkpoint/TSM_ucfcrime_RGB_mobilenetv2_shift8_blockres_avg_segment8_e25/ckpt.best.pth.tar'
+    else:
+        this_weights='checkpoint/TSM_ucfcrime_RGB_resnet50_shift8_blockres_avg_segment8_e25/ckpt.best.pth.tar'
+
+    is_shift, shift_div, shift_place = parse_shift_option_from_log_name(this_weights)
+
+    modality = 'RGB'
+
+    if 'RGB' in this_weights:
+        modality = 'RGB'
+
+    # Get dataset categories.
+    categories = ['Normal Activity','Abnormal Activity']
+    num_class = len(categories)
+    this_arch = args.get('arch')
+
+    print("[INFO] >> Model loading weights from disk!!")
+
+    net = TSN(num_class, 1, modality,
+                  base_model=this_arch,
+                  consensus_type='avg',
+                  img_feature_dim='225',
+                  #pretrain=args.pretrain,
+                  is_shift=is_shift, shift_div=shift_div, shift_place=shift_place,
+                  non_local='_nl' in this_weights,
+                  )
+
+    # See GPU_FLAG to check where to load the weights on CPU or GPU
+    if GPU_FLAG == 'y':
+        checkpoint = torch.load(this_weights)
+    else:
+        checkpoint = torch.load(this_weights,map_location=torch.device('cpu'))
+
+    checkpoint = checkpoint['state_dict']
+
+    base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(checkpoint.items())}
+    replace_dict = {'base_model.classifier.weight': 'new_fc.weight',
+                    'base_model.classifier.bias': 'new_fc.bias',
+                    }
+
+    for k, v in replace_dict.items():
+        if k in base_dict:
+            base_dict[v] = base_dict.pop(k)
+    net.load_state_dict(base_dict)
+
+    print("\n[INFO] >> Model loading Successfull")
+
+    if GPU_FLAG == 'y':
+        net.cuda().eval()
+        skip_frames = 2
+        summary(net,(1,3,224,224))
+    else:
+        net.eval()
+        skip_frames = 4
+
+    transform=torchvision.transforms.Compose([
+                               Stack(roll=(this_arch in ['BNInception', 'InceptionV3'])),
+                               ToTorchFormatTensor(div=(this_arch not in ['BNInception', 'InceptionV3'])),
+                               GroupNormalize(net.input_mean, net.input_std),
+                               ])
+    WINDOW_NAME = 'Real-Time Video Action Recognition'
     # set a lower resolution for speed up
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
@@ -307,6 +289,25 @@ def doInferecing(cap):
 
 @profile
 def main():
+    # Check if CUDA enabled GPU is available else run on CPU
+    if torch.cuda.is_available():
+        print("\nYou have an ",torch.cuda.get_device_name(0)," (Cuda enabled GPU)")
+        GPU_FLAG = input("USE GPU (y/n) : ")    
+    else:
+        print("NO GPU found, Running on CPU!")
+        GPU_FLAG = 'n'
+
+    #Start time to calculate total inference time
+
+    parser = argparse.ArgumentParser(description="TSM Testing on real time!!")
+    parser.add_argument('-f',type=str,help='Provide a video!!')
+    parser.add_argument('--arch',type=str,help='provide architecture [mobilenetv2,resnet50]',default='mobilenetv2')
+
+
+    print()
+
+    args = vars(parser.parse_args())
+
     # Create necessary folder to hold data (Anoamly Clips and Images)
     # make directories if donot exist else pass
     try:
@@ -325,6 +326,7 @@ def main():
         print("loading Video...")
         cap = cv2.VideoCapture(args['f'])
     #start inferencing in real time     
-    doInferecing(cap)
+    doInferecing(cap,args,GPU_FLAG)
 
-main()
+if __name__ == "__main__":
+    main()
