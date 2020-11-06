@@ -6,6 +6,7 @@ checkpoint/
 *.jpg
 *.dat
 *.prof
+*.nvvp
 profilingData
 plotClassificationReport.py
 appData/
