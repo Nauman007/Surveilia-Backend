@@ -112,9 +112,11 @@ def doInferecing(cap,args,GPU_FLAG):
         net.cuda().eval()
         skip_frames = 2
         summary(net,(1,3,224,224))
+        inferenceOn = 'GPU'
     else:
         net.eval()
         skip_frames = 4
+        inferenceOn = 'CPU'
 
     transform=torchvision.transforms.Compose([
                                Stack(roll=(this_arch in ['BNInception', 'InceptionV3'])),
@@ -165,7 +167,7 @@ def doInferecing(cap,args,GPU_FLAG):
                     logits = net(input)
                     h_x = torch.mean(F.softmax(logits, 1), dim=0).data
                     print('<<< [INFO] >>> PROB  - | Normal: {:.2f}'.format(h_x[0]),
-                          '| Abnormal: {:.2f} |'.format(h_x[1]),'Frames Rendered-',count,)
+                          '| Abnormal: {:.2f} |'.format(h_x[1]),'Frames Rendered-',count,'-| Inference On :',inferenceOn)
                     pr, li = h_x.sort(0, True)
                     probs = pr.tolist()
                     idx = li.tolist()
@@ -204,8 +206,7 @@ def doInferecing(cap,args,GPU_FLAG):
             fps = 1 / current_time
             #if args.get('f',True):
             FpsList.append(float(fps))
-            maxFps=max(FpsList)
-            estFps=sum(FpsList)/len(FpsList)
+            
             #else:
                 #maxFps=-1
                 #estFps=-1
@@ -278,7 +279,8 @@ def doInferecing(cap,args,GPU_FLAG):
     # Calculating total execution time        
     execTime = time.time() - startime
     print()
-    
+    maxFps=max(FpsList)
+    estFps=sum(FpsList)/len(FpsList)
     # Display Results
     print('<<< [INFO] >>> Total Abnormal Probs : ',len(maxAbnormalProb))
     print('<<< [INFO] >>> Max Abnormality Prob : {:.2f}'.format(max(maxAbnormalProb)))
