@@ -54,8 +54,13 @@ from thop import clever_format
 macs, params = clever_format([macs, params], "%.3f")
 print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
 print('{:<30}  {:<8}'.format('Number of parameters: ', params))
-    
 
+# Draw model graph.
+from torch.utils.tensorboard import SummaryWriter
+    
+tb = SummaryWriter()
+tb.add_graph(model,input)
+tb.close()
 
 
 
